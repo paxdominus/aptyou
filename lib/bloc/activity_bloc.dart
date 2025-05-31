@@ -27,7 +27,6 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
   dynamic response2;
 
   ActivityBloc() : super(ActivityInitial()) {
-    // on<FetchActivityEvent>(_onFetch);
     on<SelectTopicEvent>(_onSelectTopic);
     on<WordSelectedEvent>(_onWordSelected);
     on<LoadActivityWithData>(_onLoadActivityWithData);
@@ -148,10 +147,23 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
   void _onRoundWon(RoundWonEvent event, Emitter<ActivityState> emit) async {
     if (_cachedData != null) {
       try {
-        await RiveFile.initialize();
         counter++;
-        print("$counter");
+        if (counter != 5) {
+          _audioPlayer.play(
+            UrlSource(
+              _cachedData!.topics.first.scriptTags.first.roundPrompts![Random()
+                  .nextInt(3)],
+            ),
+          );
+        }
+        await RiveFile.initialize();
+
         if (counter == 5) {
+          _audioPlayer.play(
+            UrlSource(
+              _cachedData!.topics.first.scriptTags.first.finishGameAudio!,
+            ),
+          );
           final data = Uint8List.fromList(response2.data!);
           final byteData = ByteData.view(data.buffer);
           final file = RiveFile.import(byteData);
