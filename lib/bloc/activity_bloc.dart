@@ -23,6 +23,8 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
   int counter = 0;
   SimpleAnimation? controller;
   bool isSmallTaskReady = false;
+  dynamic response;
+  dynamic response2;
 
   ActivityBloc() : super(ActivityInitial()) {
     // on<FetchActivityEvent>(_onFetch);
@@ -33,7 +35,10 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
     on<NextRoundEvent>(_onNextRound);
   }
 
-  void _onSelectTopic(SelectTopicEvent event, Emitter<ActivityState> emit) {
+  void _onSelectTopic(
+    SelectTopicEvent event,
+    Emitter<ActivityState> emit,
+  ) async {
     if (_cachedData != null) {
       isTaskPlayed = true;
       _audioPlayer.play(
@@ -47,6 +52,19 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
         ),
       );
       emit(TopicSelected(_cachedData!, event.topicIndex, false));
+      final url = _cachedData!.topics.first.scriptTags.first.cardRewardRive!;
+
+      final url2 =
+          _cachedData!.topics.first.scriptTags.first.finalCelebrationRive!;
+
+      response2 = await Dio().get<List<int>>(
+        url2,
+        options: Options(responseType: ResponseType.bytes),
+      );
+      response = await Dio().get<List<int>>(
+        url,
+        options: Options(responseType: ResponseType.bytes),
+      );
     } else {
       emit(ActivityError("No lesson data available."));
     }
@@ -130,20 +148,6 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
   void _onRoundWon(RoundWonEvent event, Emitter<ActivityState> emit) async {
     if (_cachedData != null) {
       try {
-        final url = _cachedData!.topics.first.scriptTags.first.cardRewardRive!;
-
-        final url2 =
-            _cachedData!.topics.first.scriptTags.first.finalCelebrationRive!;
-
-        final response = await Dio().get<List<int>>(
-          url,
-          options: Options(responseType: ResponseType.bytes),
-        );
-
-        final response2 = await Dio().get<List<int>>(
-          url2,
-          options: Options(responseType: ResponseType.bytes),
-        );
         await RiveFile.initialize();
         counter++;
         print("$counter");
